@@ -1,149 +1,225 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>实时长度单位转英寸换算器</title>
   <style>
-    /* 页面整体布局 */
+    :root {
+      --bg-color: #f0f2f5;
+      --container-bg: #ffffff;
+      --text-color: #2c3e50;
+      --input-border: #3498db;
+      --result-bg: #ecf0f1;
+      --copy-bg: #27ae60;
+      --copy-bg-hover: #219a52;
+      --icon-size: 24px;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1f1f1f;
+      --container-bg: #2c2c2e;
+      --text-color: #ececec;
+      --input-border: #555555;
+      --result-bg: #3a3a3c;
+      --copy-bg: #4a8a4a;
+      --copy-bg-hover: #3a7a3a;
+    }
+
     body {
+      margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 600px;
-    }
-    h1 {
-      color: #2c3e50;
-      text-align: center;
-      margin-bottom: 2rem;
+      transition: background-color .3s, color .3s;
     }
 
-    /* 输入框及示例 */
+    .container {
+      background-color: var(--container-bg);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+      transition: background-color .3s;
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* 切换图标按钮 */
+    #themeToggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: var(--icon-size);
+      height: var(--icon-size);
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-color);
+      transition: opacity .3s;
+    }
+
+    #themeToggle:hover {
+      opacity: 0.7;
+    }
+
+    #themeToggle svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
     .converter {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
+
     input[type="text"] {
       padding: 12px;
-      border: 2px solid #3498db;
+      border: 2px solid var(--input-border);
       border-radius: 6px;
       font-size: 16px;
-      transition: border-color 0.3s ease;
+      background: transparent;
+      color: inherit;
+      transition: border-color .3s;
       width: 100%;
       box-sizing: border-box;
     }
+
     input[type="text"]:focus {
       outline: none;
       border-color: #2980b9;
     }
-    .example {
-      color: #7f8c8d;
-      font-size: 14px;
+
+    .example,
+    .hint {
       text-align: center;
-      margin-top: 1rem;
+      font-size: 14px;
+      color: #7f8c8d;
     }
 
-    /* 结果区域 */
     .result {
       margin-top: 1rem;
       padding: 1rem;
-      background-color: #ecf0f1;
+      background-color: var(--result-bg);
       border-radius: 6px;
       font-size: 18px;
-      color: #2c3e50;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: background-color .3s;
     }
+
     .result span {
       flex: 1;
     }
+
     .error {
       color: #e74c3c !important;
     }
 
-    /* 复制按钮 */
     .copy-btn {
-      background-color: #27ae60;
+      background-color: var(--copy-bg);
       color: white;
       padding: 6px 12px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-left: 1rem;
+      transition: background-color .3s;
       white-space: nowrap;
     }
+
     .copy-btn:hover {
-      background-color: #219a52;
+      background-color: var(--copy-bg-hover);
     }
   </style>
 </head>
+
 <body>
   <div class="container">
+    <button id="themeToggle" aria-label="切换主题">
+      <!-- 初始图标由脚本插入 -->
+    </button>
+
     <h1>实时长度单位转英寸换算器</h1>
     <div class="converter">
-      <input
-        type="text"
-        id="cmInput"
-        placeholder="输入长度（支持1-3个数值，单位 m/cm/mm）例：0.75m 或 600mm × 40cm"
-      />
+      <input id="cmInput" type="text" placeholder="输入长度（支持1-3个数值，单位 m/cm/mm）" />
 
-      <!-- 一位小数结果 -->
-      <div class="result" id="result1" style="display: none;">
+      <div class="result" id="result1" style="display:none">
         <span></span>
         <button class="copy-btn" onclick="copyResult('result1')">复制 1 位精度</button>
       </div>
-
-      <!-- 两位小数结果 -->
-      <div class="result" id="result2" style="display: none;">
+      <div class="result" id="result2" style="display:none">
         <span></span>
         <button class="copy-btn" onclick="copyResult('result2')">复制 2 位精度</button>
       </div>
 
-      <div class="example">
-        示例格式：75cm、0.75m、750mm、60×40×75cm
-      </div>
+      <div class="example">示例格式：75cm、0.75m、750mm、60×40×75cm</div>
+      <div class="hint">※ 未指定单位时，默认按 cm；如需 mm 或 m，请加“mm”或“m”（如 750mm、1.5m）</div>
     </div>
   </div>
 
   <script>
+    // —— 用户提供的 SVG 内容 —— //
+    const sunSVG = `
+      <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+        <path d="M512 512.01m-211.87 0a211.87 211.87 0 1 0 423.74 0 211.87 211.87 0 1 0-423.74 0Z"/>
+        <path d="M512 776.16c-16.57 0-30 13.43-30 30V928c0 16.57 13.43 30 30 30s30-13.43 30-30V806.16c0-16.57-13.43-30-30-30zM512 247.85c16.57 0 30-13.43 30-30V96.01c0-16.57-13.43-30-30-30s-30 13.43-30 30v121.84c0 16.56 13.43 30 30 30zM741.21 698.78c-11.72-11.72-30.72-11.72-42.43 0-11.72 11.72-11.72 30.71 0 42.43l86.16 86.16c5.85 5.86 13.53 8.79 21.21 8.79s15.36-2.93 21.22-8.79c11.72-11.72 11.72-30.71 0-42.43l-86.16-86.16zM282.79 325.21c5.85 5.86 13.53 8.79 21.21 8.79s15.36-2.93 21.22-8.79c11.72-11.72 11.72-30.71 0-42.43l-86.16-86.16c-11.72-11.72-30.71-11.72-42.43 0-11.72 11.72-11.72 30.71 0 42.43l86.16 86.16zM282.8 698.78l-86.16 86.16c-11.72 11.72-11.72 30.71 0 42.43a29.893 29.893 0 0 0 21.21 8.79c7.67 0 15.35-2.93 21.22-8.79l86.16-86.16c11.72-11.72 11.72-30.71 0-42.43-11.72-11.72-30.71-11.72-42.43 0zM720 334.01c7.68 0 15.35-2.93 21.22-8.79l86.16-86.16c11.72-11.72 11.72-30.71 0-42.43-11.72-11.72-30.72-11.72-42.43 0l-86.16 86.16c-11.72 11.72-11.72 30.71 0 42.43 5.85 5.86 13.53 8.79 21.21 8.79zM247.84 512.01c0-16.57-13.43-30-30-30H96c-16.57 0-30 13.43-30 30s13.43 30 30 30h121.85c16.57 0 29.99-13.43 29.99-30zM928 482.01H806.15c-16.57 0-30 13.43-30 30s13.43 30 30 30H928c16.56 0 30-13.43 30-30s-13.43-30-30-30z"/>
+      </svg>`;
+    const moonSVG = `
+      <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+        <path d="M335.22 240.91c0-57.08 10.68-111.66 30.15-161.87-167.51 64.86-286.3 227.51-286.3 417.92 0 247.42 200.58 448 448 448 190.34 0 352.95-118.71 417.85-286.13-50.16 19.42-104.69 30.08-161.71 30.08-247.41 0-447.99-200.57-447.99-448z" fill="#FFD500"/>
+      </svg>`;
+
+    const toggleBtn = document.getElementById('themeToggle');
+    let theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    toggleBtn.innerHTML = theme === 'light' ? sunSVG : moonSVG;
+
+    toggleBtn.addEventListener('click', () => {
+      theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      toggleBtn.innerHTML = theme === 'light' ? sunSVG : moonSVG;
+    });
+
+    // —— 换算逻辑 —— //
     function convert() {
       const input = document.getElementById('cmInput').value.trim();
       const regex = /(\d+\.?\d*)\s*(m|cm|mm)?/gi;
       const matches = [...input.matchAll(regex)].filter(m => m[1]);
-
       const r1 = document.getElementById('result1');
       const r2 = document.getElementById('result2');
       r1.style.display = r2.style.display = 'none';
+      r1.classList.remove('error');
 
       if (matches.length < 1 || matches.length > 3) {
         showError('请输入1-3个有效数值（例：75cm 或 60×40×75cm）');
         return;
       }
 
-      // 转换到厘米
-      let cmValues;
+      let cmVals;
       try {
-        cmValues = matches.map(([_, num, unit]) => {
+        cmVals = matches.map(([_, num, unit]) => {
           let v = parseFloat(num);
           switch ((unit || 'cm').toLowerCase()) {
-            case 'm':  return v * 100;
+            case 'm': return v * 100;
             case 'mm': return v / 10;
             case 'cm': return v;
-            default: throw new Error();
+            default: throw '';
           }
         });
       } catch {
@@ -151,12 +227,10 @@
         return;
       }
 
-      // 计算英寸
-      const inches = cmValues.map(cm => cm * 0.393701);
-      const oneDec  = inches.map(i => Math.round(i * 10) / 10).join('×') + ' in';
-      const twoDec  = inches.map(i => Math.round(i * 100) / 100).join('×') + ' in';
+      const inches = cmVals.map(cm => cm * 0.393701);
+      const oneDec = inches.map(i => Math.round(i * 10) / 10).join('×') + ' in';
+      const twoDec = inches.map(i => Math.round(i * 100) / 100).join('×') + ' in';
 
-      // 填充并显示
       r1.querySelector('span').textContent = oneDec;
       r2.querySelector('span').textContent = twoDec;
       r1.style.display = r2.style.display = 'flex';
@@ -182,4 +256,5 @@
     document.getElementById('cmInput').addEventListener('input', convert);
   </script>
 </body>
+
 </html>

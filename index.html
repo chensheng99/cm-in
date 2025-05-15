@@ -1,155 +1,185 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>实时厘米转英寸换算器</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>实时长度单位转英寸换算器</title>
+  <style>
+    /* 页面整体布局 */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 600px;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
 
-        .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 600px;
-        }
+    /* 输入框及示例 */
+    .converter {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    input[type="text"] {
+      padding: 12px;
+      border: 2px solid #3498db;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #2980b9;
+    }
+    .example {
+      color: #7f8c8d;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 1rem;
+    }
 
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+    /* 结果区域 */
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #ecf0f1;
+      border-radius: 6px;
+      font-size: 18px;
+      color: #2c3e50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .result span {
+      flex: 1;
+    }
+    .error {
+      color: #e74c3c !important;
+    }
 
-        .converter {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        input[type="text"] {
-            padding: 12px;
-            border: 2px solid #3498db;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #2980b9;
-        }
-
-        .result {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background-color: #ecf0f1;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 18px;
-            color: #2c3e50;
-        }
-
-        .copy-btn {
-            background-color: #27ae60;
-            color: white;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            flex-shrink: 0;
-        }
-
-        .copy-btn:hover {
-            background-color: #219a52;
-        }
-
-        .example {
-            color: #7f8c8d;
-            font-size: 14px;
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .error {
-            color: #e74c3c !important;
-        }
-    </style>
+    /* 复制按钮 */
+    .copy-btn {
+      background-color: #27ae60;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-left: 1rem;
+      white-space: nowrap;
+    }
+    .copy-btn:hover {
+      background-color: #219a52;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>实时厘米转英寸换算器</h1>
-        <div class="converter">
-            <input type="text" id="cmInput" placeholder="输入厘米尺寸，例如：60*40*75 CM">
-            <div class="result">
-                <span id="resultText"></span>
-                <button class="copy-btn" onclick="copyResult()">复制</button>
-            </div>
-            <div class="example">示例格式：60*40*75 CM 或 60x40x75cm</div>
-        </div>
+  <div class="container">
+    <h1>实时长度单位转英寸换算器</h1>
+    <div class="converter">
+      <input
+        type="text"
+        id="cmInput"
+        placeholder="输入长度（支持1-3个数值，单位 m/cm/mm）例：0.75m 或 600mm × 40cm"
+      />
+
+      <!-- 一位小数结果 -->
+      <div class="result" id="result1" style="display: none;">
+        <span></span>
+        <button class="copy-btn" onclick="copyResult('result1')">复制 1 位精度</button>
+      </div>
+
+      <!-- 两位小数结果 -->
+      <div class="result" id="result2" style="display: none;">
+        <span></span>
+        <button class="copy-btn" onclick="copyResult('result2')">复制 2 位精度</button>
+      </div>
+
+      <div class="example">
+        示例格式：75cm、0.75m、750mm、60×40×75cm
+      </div>
     </div>
+  </div>
 
-    <script>
-        function convert() {
-            const cmInput = document.getElementById('cmInput').value;
-            const resultText = document.getElementById('resultText');
-            const copyBtn = document.querySelector('.copy-btn');
-            
-            const dimensions = cmInput.match(/(\d+\.?\d*)/g);
-            
-            if (dimensions && dimensions.length === 3) {
-                const cmValues = dimensions.map(Number);
-                const inchValues = cmValues.map(cm => Math.round((cm * 0.3937) * 10) / 10);
-                // 修正格式：添加空格
-                resultText.textContent = `${inchValues.join('×')} in`;
-                resultText.classList.remove('error');
-                copyBtn.style.display = 'inline-block';
-            } else {
-                resultText.textContent = '请输入有效的尺寸格式（例如：60×40×75 CM）';
-                resultText.classList.add('error');
-                copyBtn.style.display = 'none';
-            }
-        }
+  <script>
+    function convert() {
+      const input = document.getElementById('cmInput').value.trim();
+      const regex = /(\d+\.?\d*)\s*(m|cm|mm)?/gi;
+      const matches = [...input.matchAll(regex)].filter(m => m[1]);
 
-        function copyResult() {
-            const resultText = document.getElementById('resultText');
-            // 检查是否有效结果
-            if (resultText.textContent.includes('×')) {
-                const contentToCopy = resultText.textContent.split(' ')[0];
-                navigator.clipboard.writeText(contentToCopy)
-                    .then(() => {
-                        // 改为更友好的提示方式
-                        const originalText = resultText.textContent;
-                        resultText.textContent = '已复制到剪贴板！';
-                        setTimeout(() => {
-                            resultText.textContent = originalText;
-                        }, 1000);
-                    })
-                    .catch(err => {
-                        console.error('复制失败:', err);
-                        alert('复制失败，请手动选择文本复制');
-                    });
-            }
-        }
+      const r1 = document.getElementById('result1');
+      const r2 = document.getElementById('result2');
+      r1.style.display = r2.style.display = 'none';
 
-        // 实时监听输入变化
-        document.getElementById('cmInput').addEventListener('input', convert);
-        // 初始化隐藏复制按钮
-        document.querySelector('.copy-btn').style.display = 'none';
-    </script>
+      if (matches.length < 1 || matches.length > 3) {
+        showError('请输入1-3个有效数值（例：75cm 或 60×40×75cm）');
+        return;
+      }
+
+      // 转换到厘米
+      let cmValues;
+      try {
+        cmValues = matches.map(([_, num, unit]) => {
+          let v = parseFloat(num);
+          switch ((unit || 'cm').toLowerCase()) {
+            case 'm':  return v * 100;
+            case 'mm': return v / 10;
+            case 'cm': return v;
+            default: throw new Error();
+          }
+        });
+      } catch {
+        showError('仅支持 m、cm、mm 单位');
+        return;
+      }
+
+      // 计算英寸
+      const inches = cmValues.map(cm => cm * 0.393701);
+      const oneDec  = inches.map(i => Math.round(i * 10) / 10).join('×') + ' in';
+      const twoDec  = inches.map(i => Math.round(i * 100) / 100).join('×') + ' in';
+
+      // 填充并显示
+      r1.querySelector('span').textContent = oneDec;
+      r2.querySelector('span').textContent = twoDec;
+      r1.style.display = r2.style.display = 'flex';
+
+      function showError(msg) {
+        r1.querySelector('span').textContent = msg;
+        r1.classList.add('error');
+        r1.style.display = 'flex';
+      }
+    }
+
+    function copyResult(id) {
+      const el = document.getElementById(id).querySelector('span');
+      navigator.clipboard.writeText(el.textContent)
+        .then(() => {
+          const prev = el.textContent;
+          el.textContent = '已复制到剪贴板！';
+          setTimeout(() => el.textContent = prev, 1000);
+        })
+        .catch(() => alert('复制失败，请手动复制'));
+    }
+
+    document.getElementById('cmInput').addEventListener('input', convert);
+  </script>
 </body>
 </html>
